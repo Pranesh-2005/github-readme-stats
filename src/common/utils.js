@@ -591,6 +591,10 @@ const dateDiff = (d1, d2) => {
   return Math.round(diff / (1000 * 60));
 };
 
+function getGithubToken() {
+  return process.env.PAT_1 || process.env.GITHUB_TOKEN;
+}
+
 export {
   ERROR_CARD_LENGTH,
   renderError,
@@ -617,4 +621,5 @@ export {
   chunkArray,
   parseEmojis,
   dateDiff,
+  getGithubToken,
 };
