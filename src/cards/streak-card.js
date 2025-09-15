@@ -38,16 +38,21 @@ export function renderStreakCard(username, streak, options) {
     return `${start} - ${end}`;
   };
 
-  // Center all content vertically by adjusting these Y coordinates
-  const titleY = 30;
-  const statsY = 100; // Move stats numbers down (was 70)
-  const labelsY = 130; // Move labels down (was 100) 
-  const rangeY = 150; // Move date ranges down (was 120)
-  const circleY = 110; // Move circle center down (was 80)
-  const circleNumberY = 115; // Move circle number down (was 90)
-  const circleLabelY = 170; // Move circle label further down (was 145)
-  const circleRangeY = 175; // Move circle range further down (was 165)
-  const fireIconY = 49.5; // Move fire icon down (was 19.5)
+  // Move everything up since title is removed
+  const statsY = 85;        // Was 100
+  const labelsY = 115;      // Was 130
+  const rangeY = 135;       // Was 150
+  const circleY = 95;       // Was 110
+  const circleNumberY = 100; // Was 115
+  const circleLabelY = 155;  // Was 170
+  const circleRangeY = 174;  // Was 189
+  const fireIconY = 34.5;    // Was 49.5
+  
+  // Divider line coordinates - also moved up
+  const lineTop = 30;       // Was 45
+  const lineBottom = 165;   // Was 180
+  const line1X = 171;       // Position of first vertical line (between Total and Current)
+  const line2X = 324;       // Position of second vertical line (between Current and Longest)
   
   return `
     <svg xmlns="http://www.w3.org/2000/svg" width="495" height="195" viewBox="0 0 495 195">
@@ -88,16 +93,16 @@ export function renderStreakCard(username, streak, options) {
         .range { font: 400 12px 'Segoe UI', Ubuntu, Sans-Serif; fill: ${textColor}; text-anchor: middle; opacity: 0; animation: fadein 1s forwards; }
         .circle-label { font: 700 28px 'Segoe UI', Ubuntu, Sans-Serif; fill: orange; text-anchor: middle; dominant-baseline: middle; filter: url(#glow); animation: currstreak 0.6s forwards; }
         .ring { stroke: orange; filter: url(#glow); animation: glowPulse 2s infinite; }
+        .divider { stroke: ${textColor}; stroke-opacity: 0.4; stroke-width: 1; }
       </style>
       
       <rect width="100%" height="100%" fill="${bgColor}" stroke="${
         options.hide_border ? "none" : borderColor
       }" rx="4.5"/>
       
-      <!-- Title - centered -->
-      <g text-anchor="middle" transform="translate(247.5, ${titleY})">
-        <text x="25" class="header-text">Contribution Streak for ${username}</text>
-      </g>
+      <!-- Divider lines -->
+      <line x1="${line1X}" y1="${lineTop}" x2="${line1X}" y2="${lineBottom}" class="divider" />
+      <line x1="${line2X}" y1="${lineTop}" x2="${line2X}" y2="${lineBottom}" class="divider" />
 
       <!-- Total Contributions -->
       <text x="95" y="${statsY}" class="stat">${streak.totalContributions.toLocaleString()}</text>

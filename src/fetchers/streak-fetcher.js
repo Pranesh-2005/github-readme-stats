@@ -61,6 +61,17 @@ async function fetchYearCalendar(username, year, token) {
 }
 
 /**
+ * Format a date for display (YYYY-MM-DD to MMM D)
+ * @param {string} dateString
+ * @returns {string}
+ */
+function formatDateForDisplay(dateString) {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+/**
  * Calculate streaks and totals from all days (GitHub logic, UTC aware).
  * @param {Record<string, number>} contributions - Map of date string to count
  */
@@ -70,6 +81,13 @@ function calculateStreaks(contributions) {
   let longestStreak = 0;
   let tempStreak = 0;
   let prevDate = null;
+  
+  // For tracking date ranges
+  let currentStreakStart = null;
+  let currentStreakEnd = null;
+  let longestStreakStart = null;
+  let longestStreakEnd = null;
+  const firstContribution = dates.length > 0 ? dates[0] : null;
 
   // Use UTC date for today to match GitHub's calendar
   const now = new Date();
@@ -95,6 +113,12 @@ function calculateStreaks(contributions) {
     if (streaking) {
       if (count > 0) {
         currentStreak++;
+        
+        // Track the current streak range
+        if (currentStreakEnd === null) {
+          currentStreakEnd = date;
+        }
+        currentStreakStart = date;
       } else {
         // Only break if date is today or before
         if (date === today || date < today) {
@@ -107,29 +131,45 @@ function calculateStreaks(contributions) {
   // Calculate longest streak
   tempStreak = 0;
   prevDate = null;
+  let tempStreakStart = null;
+  
   for (let i = 0; i < dates.length; i++) {
     const date = dates[i];
     const count = contributions[date];
+    
     if (count > 0) {
-      if (
-        prevDate === null ||
-        (new Date(date) - new Date(prevDate)) / (1000 * 60 * 60 * 24) === 1
-      ) {
+      if (prevDate === null || 
+          (new Date(date) - new Date(prevDate)) / (1000 * 60 * 60 * 24) === 1) {
+        if (tempStreak === 0) {
+          tempStreakStart = date; // Start of a new streak
+        }
         tempStreak++;
       } else {
         tempStreak = 1;
+        tempStreakStart = date; // Start of a new streak
       }
-      if (tempStreak > longestStreak) longestStreak = tempStreak;
+      
+      if (tempStreak > longestStreak) {
+        longestStreak = tempStreak;
+        longestStreakStart = tempStreakStart;
+        longestStreakEnd = date;
+      }
     } else {
       tempStreak = 0;
     }
     prevDate = date;
   }
 
+  // Format dates for display
   return {
     currentStreak,
     longestStreak,
     totalContributions,
+    firstContribution: formatDateForDisplay(firstContribution),
+    currentStreakStart: formatDateForDisplay(currentStreakStart),
+    currentStreakEnd: formatDateForDisplay(currentStreakEnd),
+    longestStreakStart: formatDateForDisplay(longestStreakStart),
+    longestStreakEnd: formatDateForDisplay(longestStreakEnd),
   };
 }
 
@@ -137,7 +177,16 @@ function calculateStreaks(contributions) {
  * Fetch the user's all-time contribution streak data.
  * @param {string} username
  * @param {string} token
- * @returns {Promise<{currentStreak: number, longestStreak: number, totalContributions: number}>}
+ * @returns {Promise<{
+ *   currentStreak: number,
+ *   longestStreak: number, 
+ *   totalContributions: number,
+ *   firstContribution: string,
+ *   currentStreakStart: string,
+ *   currentStreakEnd: string,
+ *   longestStreakStart: string,
+ *   longestStreakEnd: string
+ * }>}
  */
 const fetchStreak = async (username, token) => {
   if (!username) {
