@@ -61,13 +61,19 @@ async function fetchYearCalendar(username, year, token) {
 }
 
 /**
- * Format a date for display (YYYY-MM-DD to MMM D)
- * @param {string} dateString
- * @returns {string}
+ * Format a date for display (YYYY-MM-DD to MMM D or MMM D, YYYY)
+ * @param {string} dateString - ISO date string
+ * @param {boolean} includeYear - Whether to include the year
+ * @returns {string} Formatted date string
  */
-function formatDateForDisplay(dateString) {
+function formatDateForDisplay(dateString, includeYear = false) {
   if (!dateString) return '';
   const date = new Date(dateString);
+  
+  if (includeYear) {
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  }
+  
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
@@ -87,7 +93,15 @@ function calculateStreaks(contributions) {
   let currentStreakEnd = null;
   let longestStreakStart = null;
   let longestStreakEnd = null;
-  const firstContribution = dates.length > 0 ? dates[0] : null;
+  
+  // Find the first actual contribution date
+  let firstContribution = null;
+  for (const date of dates) {
+    if (contributions[date] > 0) {
+      firstContribution = date;
+      break;
+    }
+  }
 
   // Use UTC date for today to match GitHub's calendar
   const now = new Date();
@@ -160,12 +174,12 @@ function calculateStreaks(contributions) {
     prevDate = date;
   }
 
-  // Format dates for display
+  // Format dates for display - include year only for first contribution
   return {
     currentStreak,
     longestStreak,
     totalContributions,
-    firstContribution: formatDateForDisplay(firstContribution),
+    firstContribution: formatDateForDisplay(firstContribution, true), // Include year
     currentStreakStart: formatDateForDisplay(currentStreakStart),
     currentStreakEnd: formatDateForDisplay(currentStreakEnd),
     longestStreakStart: formatDateForDisplay(longestStreakStart),
