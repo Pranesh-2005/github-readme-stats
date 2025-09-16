@@ -42,11 +42,11 @@ export function renderStreakCard(username, streak, options) {
   const statsY = 85;        // Was 100
   const labelsY = 115;      // Was 130
   const rangeY = 135;       // Was 150
-  const circleY = 95;       // Was 110
-  const circleNumberY = 100; // Was 115
-  const circleLabelY = 155;  // Was 170
-  const circleRangeY = 174;  // Was 189
-  const fireIconY = 34.5;    // Was 49.5
+  const circleY = 79;       // Was 110
+  const circleNumberY = 84; // Was 115
+  const circleLabelY = 144;  // Was 170
+  const circleRangeY = 164;  // Was 189
+  const fireIconY = 23.5;    // Was 49.5
   
   // Divider line coordinates - also moved up
   const lineTop = 30;       // Was 45
@@ -125,7 +125,7 @@ export function renderStreakCard(username, streak, options) {
 
       <!-- Current Streak number -->
       <text x="247.5" y="${circleNumberY}" class="circle-label">${streak.currentStreak}</text>
-      <text x="247.5" y="${circleLabelY}" class="label">Current Streak</text>
+      <text x="247.5" y="${circleLabelY}" class="label"  style="fill: orange">Current Streak</text>
       <text x="247.5" y="${circleRangeY}" class="range">${
         streak.currentStreakStart && streak.currentStreakEnd
           ? formatRange(streak.currentStreakStart, streak.currentStreakEnd)
