@@ -1,8 +1,6 @@
 import { renderTopLanguages } from "../src/cards/top-languages.js";
 import { blacklist } from "../src/common/blacklist.js";
 import {
-  clampValue,
-  CONSTANTS,
   parseArray,
   parseBoolean,
   renderError,
@@ -21,7 +19,6 @@ export default async (req, res) => {
     text_color,
     bg_color,
     theme,
-    cache_seconds,
     layout,
     langs_count,
     exclude_repo,
@@ -34,6 +31,7 @@ export default async (req, res) => {
     disable_animations,
     hide_progress,
   } = req.query;
+
   res.setHeader("Content-Type", "image/svg+xml");
 
   if (blacklist.includes(username)) {
@@ -70,19 +68,8 @@ export default async (req, res) => {
       count_weight,
     );
 
-    let cacheSeconds = clampValue(
-      parseInt(cache_seconds || CONSTANTS.TOP_LANGS_CACHE_SECONDS, 10),
-      CONSTANTS.TWO_DAY,
-      CONSTANTS.TEN_DAY,
-    );
-    cacheSeconds = process.env.CACHE_SECONDS
-      ? parseInt(process.env.CACHE_SECONDS, 10) || cacheSeconds
-      : cacheSeconds;
-
-    res.setHeader(
-      "Cache-Control",
-      `max-age=${cacheSeconds / 2}, s-maxage=${cacheSeconds}`,
-    );
+    // 🚀 force fresh data every request
+    res.setHeader("Cache-Control", "no-store, max-age=0, s-maxage=0");
 
     return res.send(
       renderTopLanguages(topLangs, {
@@ -105,12 +92,7 @@ export default async (req, res) => {
       }),
     );
   } catch (err) {
-    res.setHeader(
-      "Cache-Control",
-      `max-age=${CONSTANTS.ERROR_CACHE_SECONDS / 2}, s-maxage=${
-        CONSTANTS.ERROR_CACHE_SECONDS
-      }, stale-while-revalidate=${CONSTANTS.ONE_DAY}`,
-    ); // Use lower cache period for errors.
+    res.setHeader("Cache-Control", "no-store, max-age=0, s-maxage=0");
     return res.send(
       renderError(err.message, err.secondaryMessage, {
         title_color,
