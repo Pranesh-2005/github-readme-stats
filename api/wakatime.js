@@ -1,7 +1,5 @@
 import { renderWakatimeCard } from "../src/cards/wakatime.js";
 import {
-  clampValue,
-  CONSTANTS,
   parseArray,
   parseBoolean,
   renderError,
@@ -19,7 +17,6 @@ export default async (req, res) => {
     text_color,
     bg_color,
     theme,
-    cache_seconds,
     hide_title,
     hide_progress,
     custom_title,
@@ -51,20 +48,12 @@ export default async (req, res) => {
   try {
     const stats = await fetchWakatimeStats({ username, api_domain });
 
-    let cacheSeconds = clampValue(
-      parseInt(cache_seconds || CONSTANTS.CARD_CACHE_SECONDS, 10),
-      CONSTANTS.SIX_HOURS,
-      CONSTANTS.TWO_DAY,
-    );
-    cacheSeconds = process.env.CACHE_SECONDS
-      ? parseInt(process.env.CACHE_SECONDS, 10) || cacheSeconds
-      : cacheSeconds;
+    // 🔥 Always refresh every 6 hours
+    let cacheSeconds = 21600; // 6 hours = 60 * 60 * 6
 
     res.setHeader(
       "Cache-Control",
-      `max-age=${
-        cacheSeconds / 2
-      }, s-maxage=${cacheSeconds}, stale-while-revalidate=${CONSTANTS.ONE_DAY}`,
+      `max-age=${cacheSeconds / 2}, s-maxage=${cacheSeconds}, stale-while-revalidate=${21600}`,
     );
 
     return res.send(
@@ -92,10 +81,8 @@ export default async (req, res) => {
   } catch (err) {
     res.setHeader(
       "Cache-Control",
-      `max-age=${CONSTANTS.ERROR_CACHE_SECONDS / 2}, s-maxage=${
-        CONSTANTS.ERROR_CACHE_SECONDS
-      }, stale-while-revalidate=${CONSTANTS.ONE_DAY}`,
-    ); // Use lower cache period for errors.
+      `max-age=${300}, s-maxage=${600}, stale-while-revalidate=${21600}`,
+    ); // short cache for errors (5–10 mins)
     return res.send(
       renderError(err.message, err.secondaryMessage, {
         title_color,
